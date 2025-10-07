@@ -1,0 +1,9 @@
+apache-airflow-providers-apache-spark
+apache-airflow-providers-mysql
+apache-airflow-providers-postgres
+pyspark==3.4.1
+requests
+pandas
+sqlalchemy
+pymysql
+cryptography

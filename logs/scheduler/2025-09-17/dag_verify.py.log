@@ -1,0 +1,7 @@
+[2025-09-17T11:02:36.814+0000] {processor.py:186} INFO - Started process (PID=232) to work on /opt/airflow/dags/dag_verify.py
+[2025-09-17T11:02:36.816+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/dag_verify.py for tasks to queue
+[2025-09-17T11:02:36.820+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.820+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/dag_verify.py
+[2025-09-17T11:02:36.859+0000] {processor.py:925} INFO - DAG(s) 'dag_verify' retrieved from /opt/airflow/dags/dag_verify.py
+[2025-09-17T11:02:36.900+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.899+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-09-17T11:02:37.196+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:37.195+0000] {dag.py:4180} INFO - Setting next_dagrun for dag_verify to 2025-09-17 00:00:00+00:00, run_after=2025-09-18 00:00:00+00:00
+[2025-09-17T11:02:37.229+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/dag_verify.py took 0.427 seconds

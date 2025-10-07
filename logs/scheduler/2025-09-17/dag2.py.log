@@ -1,0 +1,7 @@
+[2025-09-17T11:02:36.245+0000] {processor.py:186} INFO - Started process (PID=214) to work on /opt/airflow/dags/dag2.py
+[2025-09-17T11:02:36.248+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/dag2.py for tasks to queue
+[2025-09-17T11:02:36.253+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.252+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/dag2.py
+[2025-09-17T11:02:36.300+0000] {processor.py:925} INFO - DAG(s) 'dag2.v2.0' retrieved from /opt/airflow/dags/dag2.py
+[2025-09-17T11:02:36.356+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.356+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-09-17T11:02:36.416+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.415+0000] {dag.py:4180} INFO - Setting next_dagrun for dag2.v2.0 to 2025-09-16 03:00:00+00:00, run_after=2025-09-23 03:00:00+00:00
+[2025-09-17T11:02:36.728+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/dag2.py took 0.500 seconds

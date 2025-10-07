@@ -1,0 +1,18 @@
+[2025-07-16T08:41:57.345+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2025-07-16T08:41:57.380+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dag2.hello_user scheduled__2025-07-15T00:00:00+00:00 [queued]>
+[2025-07-16T08:41:57.395+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dag2.hello_user scheduled__2025-07-15T00:00:00+00:00 [queued]>
+[2025-07-16T08:41:57.396+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 2
+[2025-07-16T08:41:57.417+0000] {taskinstance.py:2889} INFO - Executing <Task(PythonOperator): hello_user> on 2025-07-15 00:00:00+00:00
+[2025-07-16T08:41:57.428+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'dag2', 'hello_user', 'scheduled__2025-07-15T00:00:00+00:00', '--job-id', '31', '--raw', '--subdir', 'DAGS_FOLDER/dag2.py', '--cfg-path', '/tmp/tmp_bywe2h5']
+[2025-07-16T08:41:57.433+0000] {standard_task_runner.py:105} INFO - Job 31: Subtask hello_user
+[2025-07-16T08:41:57.435+0000] {logging_mixin.py:190} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:70 DeprecationWarning: This process (pid=589) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2025-07-16T08:41:57.436+0000] {standard_task_runner.py:72} INFO - Started process 590 to run task
+[2025-07-16T08:41:57.511+0000] {task_command.py:467} INFO - Running <TaskInstance: dag2.hello_user scheduled__2025-07-15T00:00:00+00:00 [running]> on host 97ccc390339b
+[2025-07-16T08:41:57.636+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='dag2' AIRFLOW_CTX_TASK_ID='hello_user' AIRFLOW_CTX_EXECUTION_DATE='2025-07-15T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-07-15T00:00:00+00:00'
+[2025-07-16T08:41:57.638+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2025-07-16T08:41:57.660+0000] {python.py:240} INFO - Done. Returned value was: Moua
+[2025-07-16T08:41:57.695+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2025-07-16T08:41:57.696+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=dag2, task_id=hello_user, run_id=scheduled__2025-07-15T00:00:00+00:00, execution_date=20250715T000000, start_date=20250716T084157, end_date=20250716T084157
+[2025-07-16T08:41:57.732+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2025-07-16T08:41:57.761+0000] {taskinstance.py:3895} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-07-16T08:41:57.764+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
