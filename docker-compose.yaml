@@ -70,11 +70,19 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    # Python version consistency for Spark integration
+    PYSPARK_PYTHON: python3.10
+    PYSPARK_DRIVER_PYTHON: python3.10
+    SPARK_HOME: /opt/spark
+    SPARK_MASTER_URL: spark://spark-master:7077
+    # Additional Spark configurations
+    SPARK_LOCAL_IP: 0.0.0.0
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/spark-data:/opt/airflow/spark-data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -116,17 +124,27 @@ services:
       start_period: 5s
     restart: always
   spark-master:
-    image: apache/spark:3.4.1
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     ports:
       - "8088:8080"  # Web UI
       - "7077:7077"  # Spark master port
     volumes:
       - ./spark-data:/opt/spark/work-dir
-    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master"
+    environment:
+      - PYSPARK_PYTHON=python3.10
+      - PYSPARK_DRIVER_PYTHON=python3.10
+      - SPARK_MASTER_HOST=0.0.0.0
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_PUBLIC_DNS=localhost
+    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host 0.0.0.0 --port 7077 --webui-port 8080"
     restart: always   
   
   spark-worker:
-    image: apache/spark:3.4.1
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     depends_on:
       - spark-master
     ports:
@@ -138,11 +156,16 @@ services:
       - SPARK_WORKER_MEMORY=2g
       - SPARK_WORKER_PORT=8881
       - SPARK_WORKER_WEBUI_PORT=8081
-    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"
+      - PYSPARK_PYTHON=python3.10
+      - PYSPARK_DRIVER_PYTHON=python3.10
+      - SPARK_PUBLIC_DNS=localhost
+    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077 --host 0.0.0.0 --port 8881 --webui-port 8081"
     restart: always   
 
   spark-worker-2:
-    image: apache/spark:3.4.1
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     depends_on:
       - spark-master
     ports:
@@ -154,7 +177,10 @@ services:
       - SPARK_WORKER_MEMORY=2g
       - SPARK_WORKER_PORT=8882
       - SPARK_WORKER_WEBUI_PORT=8081
-    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"
+      - PYSPARK_PYTHON=python3.10
+      - PYSPARK_DRIVER_PYTHON=python3.10
+      - SPARK_PUBLIC_DNS=localhost
+    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077 --host 0.0.0.0 --port 8882 --webui-port 8081"
     restart: always
   
 
@@ -291,5 +317,9 @@ services:
 volumes:
   postgres-db-volume:
   mysql-db-volume:
+
+networks:
+  default:
+    driver: bridge
   
 

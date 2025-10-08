@@ -17,6 +17,14 @@ docker-compose exec airflow-webserver airflow connections add `
     --conn-schema airflow `
     --conn-port 3306
 
+# Add Spark connection to Airflow
+Write-Host "🔥 Adding Spark connection..." -ForegroundColor Yellow
+docker-compose exec airflow-webserver airflow connections add `
+    --conn-id spark_default `
+    --conn-type spark `
+    --conn-host spark-master `
+    --conn-port 7077
+
 # Set NASA API Key as Airflow variable (optional)
 Write-Host "🔑 Setting NASA API Key..." -ForegroundColor Yellow
 docker-compose exec airflow-webserver airflow variables set `

@@ -1,0 +1,40 @@
+# Custom Spark Docker image with Python dependencies
+FROM apache/spark:3.5.7-java17
+
+USER root
+
+# Install Python 3.10 and pip
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3.10-dev \
+    python3.10-distutils \
+    python3-pip \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for python3.10
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python
+
+# Install Python packages required for NASA NEO processing
+RUN pip3 install --no-cache-dir \
+    requests==2.31.0 \
+    pandas==2.0.3 \
+    sqlalchemy==2.0.21 \
+    pymysql==1.1.0 \
+    cryptography==41.0.4 \
+    numpy==1.24.3
+
+# Set Python environment variables
+ENV PYSPARK_PYTHON=python3.10
+ENV PYSPARK_DRIVER_PYTHON=python3.10
+ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.7-src.zip:${PYTHONPATH}"
+
+# Copy the NASA NEO processing script
+COPY spark_neo_processor.py /opt/spark/work-dir/spark_neo_processor.py
+
+# Set proper permissions
+RUN chmod +x /opt/spark/work-dir/spark_neo_processor.py
+
+USER 185

@@ -1,10 +1,8 @@
+# Airflow-specific requirements - only what's needed for DAG execution and Spark job submission
 apache-airflow-providers-apache-spark==4.9.0
 apache-airflow-providers-mysql
 apache-airflow-providers-postgres
-pyspark==3.5.7
 requests
-pandas
 sqlalchemy
 pymysql
 cryptography
-py4j==0.10.9.7

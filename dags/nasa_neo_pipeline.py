@@ -5,6 +5,7 @@ Automated data extraction, processing, and MySQL storage every 7 days
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.providers.mysql.hooks.mysql import MySqlHook
 from datetime import datetime, timedelta
@@ -15,10 +16,7 @@ import logging
 import os
 import sys
 
-# Add PySpark imports
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, regexp_extract
-from pyspark.sql.types import *
+# PySpark processing is handled by SparkSubmitOperator using spark_neo_processor.py
 
 # Default arguments for the DAG
 default_args = {
@@ -42,65 +40,7 @@ dag = DAG(
     tags=['nasa', 'neo', 'etl', 'spark', 'mysql'],
 )
 
-def get_spark_session():
-    """Initialize Spark session with distributed cluster configuration"""
-    # Set Python executables for distributed Spark cluster
-    os.environ['PYSPARK_PYTHON'] = 'python3'
-    os.environ['PYSPARK_DRIVER_PYTHON'] = 'python3'
-    
-    # Get Spark master URL from environment or use default
-    spark_master = os.getenv('SPARK_MASTER_URL', 'spark://spark-master:7077')
-    
-    # Get the current container's hostname/IP for driver
-    import socket
-    driver_host = socket.gethostname()
-    
-    logging.info(f"🔧 Connecting to Spark cluster at: {spark_master}")
-    logging.info(f"🖥️ Driver host: {driver_host}")
-    
-    spark = SparkSession.builder \
-        .appName("nasa_neo_etl_distributed") \
-        .master(spark_master) \
-        .config("spark.executor.memory", "1800m") \
-        .config("spark.executor.cores", "2") \
-        .config("spark.cores.max", "4") \
-        .config("spark.driver.memory", "1g") \
-        .config("spark.driver.maxResultSize", "1g") \
-        .config("spark.driver.host", driver_host) \
-        .config("spark.driver.port", "0") \
-        .config("spark.driver.bindAddress", "0.0.0.0") \
-        .config("spark.blockManager.port", "0") \
-        .config("spark.sql.adaptive.enabled", "true") \
-        .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
-        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
-        .config("spark.sql.execution.arrow.pyspark.enabled", "false") \
-        .config("spark.network.timeout", "600s") \
-        .config("spark.executor.heartbeatInterval", "60s") \
-        .config("spark.dynamicAllocation.enabled", "false") \
-        .config("spark.submit.deployMode", "client") \
-        .config("spark.ui.port", "4040") \
-        .getOrCreate()
-    
-    # Verify cluster connection
-    try:
-        spark_context = spark.sparkContext
-        logging.info(f"✅ Spark session created successfully!")
-        logging.info(f"   • Spark Version: {spark.version}")
-        logging.info(f"   • Master URL: {spark_master}")
-        logging.info(f"   • Application ID: {spark_context.applicationId}")
-        logging.info(f"   • Default Parallelism: {spark_context.defaultParallelism}")
-        logging.info(f"   • Available Executors: {len(spark_context._jsc.sc().statusTracker().getExecutorInfos()) - 1}")
-        
-        # Test the connection with a simple operation
-        test_rdd = spark_context.parallelize([1, 2, 3, 4])
-        result = test_rdd.sum()
-        logging.info(f"   • Cluster Test Result: {result} ✅")
-        
-    except Exception as e:
-        logging.warning(f"⚠️ Cluster verification failed: {e}")
-        logging.info("Continuing with available resources...")
-    
-    return spark
+# Removed get_spark_session function - using SparkSubmitOperator instead
 
 def extract_nasa_neo_data(**context):
     """
@@ -139,13 +79,19 @@ def extract_nasa_neo_data(**context):
         
         logging.info(f"✅ Extracted {len(neo_list)} NEO records")
         
-        # Save raw data to temporary file for next task
-        temp_file = f"/tmp/nasa_neo_raw_{context['ds']}.json"
-        with open(temp_file, 'w') as f:
+        # Save raw data to shared volume for Spark processing
+        shared_file = f"/opt/airflow/spark-data/nasa_neo_raw_{context['ds']}.json"
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(shared_file), exist_ok=True)
+        
+        with open(shared_file, 'w') as f:
             json.dump(neo_list, f, indent=2)
         
+        logging.info(f"Raw data saved to: {shared_file}")
+        
         # Push filename to XCom for next task
-        return temp_file
+        return shared_file
         
     except requests.RequestException as e:
         logging.error(f"❌ API request failed: {e}")
@@ -154,96 +100,15 @@ def extract_nasa_neo_data(**context):
         logging.error(f"❌ Data extraction failed: {e}")
         raise
 
-def process_neo_data(**context):
-    """
-    Process NASA NEO data using PySpark
-    """
-    try:
-        # Get the raw data file from previous task
-        temp_file = context['task_instance'].xcom_pull(task_ids='extract_nasa_data')
-        
-        if not os.path.exists(temp_file):
-            raise FileNotFoundError(f"Raw data file not found: {temp_file}")
-        
-        # Load raw data
-        with open(temp_file, 'r') as f:
-            neo_list = json.load(f)
-        
-        logging.info(f"Processing {len(neo_list)} NEO records with Spark")
-        
-        # Initialize Spark session
-        spark = get_spark_session()
-        
-        try:
-            # Convert to pandas DataFrame first, then to Spark DataFrame
-            pandas_df = pd.DataFrame(neo_list)
-            df = spark.createDataFrame(pandas_df)
-            
-            # Process the data - extract nested fields
-            df_processed = df.withColumn("estimated_diameter_km_max", 
-                                       col("estimated_diameter").getItem("kilometers").getItem("estimated_diameter_max")) \
-                            .withColumn("estimated_diameter_km_min", 
-                                       col("estimated_diameter").getItem("kilometers").getItem("estimated_diameter_min"))
-            
-            # Extract close approach data (first approach only)
-            df_with_approach = df_processed.withColumn("close_approach_date_full", 
-                                                     col("close_approach_data").getItem(0).getItem("close_approach_date_full")) \
-                                         .withColumn("velocity_kps_str", 
-                                                    col("close_approach_data").getItem(0).getItem("relative_velocity")) \
-                                         .withColumn("miss_distance_str", 
-                                                    col("close_approach_data").getItem(0).getItem("miss_distance")) \
-                                         .withColumn("orbiting_body", 
-                                                    col("close_approach_data").getItem(0).getItem("orbiting_body"))
-            
-            # Extract numerical values from nested string maps using regex
-            df_final = df_with_approach.withColumn("velocity_kps", 
-                                                 regexp_extract(col("velocity_kps_str"), r"kilometers_per_second=([0-9.]+)", 1).cast("double")) \
-                                       .withColumn("miss_distance_km", 
-                                                  regexp_extract(col("miss_distance_str"), r"kilometers=([0-9.]+)", 1).cast("double"))
-            
-            # Select final columns
-            df_clean = df_final.select(
-                "id",
-                "neo_reference_id", 
-                "name",
-                "absolute_magnitude_h", 
-                "is_potentially_hazardous_asteroid", 
-                "estimated_diameter_km_max", 
-                "estimated_diameter_km_min", 
-                "close_approach_date_full", 
-                "velocity_kps", 
-                "miss_distance_km", 
-                "orbiting_body",
-                "date",
-                "is_sentry_object"
-            )
-            
-            # Convert back to Pandas for easier MySQL insertion
-            processed_data = df_clean.toPandas()
-            
-            logging.info(f"✅ Processed {len(processed_data)} records")
-            logging.info(f"Columns: {list(processed_data.columns)}")
-            
-            # Save processed data
-            processed_file = f"/tmp/nasa_neo_processed_{context['ds']}.csv"
-            processed_data.to_csv(processed_file, index=False)
-            
-            return processed_file
-            
-        finally:
-            spark.stop()
-            
-    except Exception as e:
-        logging.error(f"❌ Data processing failed: {e}")
-        raise
+# Removed process_neo_data function - using SparkSubmitOperator with spark_neo_processor.py script
 
 def load_to_mysql(**context):
     """
     Load processed NEO data to MySQL database
     """
     try:
-        # Get processed data file from previous task
-        processed_file = context['task_instance'].xcom_pull(task_ids='process_neo_data')
+        # Get processed data file from shared volume (Spark output)
+        processed_file = f"/opt/airflow/spark-data/nasa_neo_processed_{context['ds']}.csv"
         
         if not os.path.exists(processed_file):
             raise FileNotFoundError(f"Processed data file not found: {processed_file}")
@@ -312,16 +177,16 @@ create_table_task = MySqlOperator(
         estimated_diameter_km_min DECIMAL(15,6),
         close_approach_date_full VARCHAR(50),
         velocity_kps DECIMAL(15,6),
-        miss_distance_km DECIMAL(20,6),
+        miss_distance_km DECIMAL(15,6),
         orbiting_body VARCHAR(50),
-        date DATE,
+        date VARCHAR(20),
         is_sentry_object BOOLEAN,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        batch_date DATE,
+        batch_date VARCHAR(20),
         INDEX idx_date (date),
-        INDEX idx_hazardous (is_potentially_hazardous_asteroid),
-        INDEX idx_batch_date (batch_date)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        INDEX idx_batch_date (batch_date),
+        INDEX idx_hazardous (is_potentially_hazardous_asteroid)
+    );
     """,
     dag=dag,
 )
@@ -332,9 +197,33 @@ extract_task = PythonOperator(
     dag=dag,
 )
 
-process_task = PythonOperator(
+# Use BashOperator to directly call spark-submit with improved client mode configuration
+process_task = BashOperator(
     task_id='process_neo_data',
-    python_callable=process_neo_data,
+    bash_command="""
+    # Get the container's IP address for driver host
+    DRIVER_HOST=$(hostname -i)
+    echo "Driver host: $DRIVER_HOST"
+    
+    /opt/spark/bin/spark-submit \
+        --master spark://spark-master:7077 \
+        --deploy-mode client \
+        --conf spark.executor.memory=1400m \
+        --conf spark.executor.cores=1 \
+        --conf spark.driver.memory=1g \
+        --conf spark.dynamicAllocation.enabled=false \
+        --conf spark.pyspark.python=python3.10 \
+        --conf spark.pyspark.driver.python=python3.10 \
+        --conf spark.driver.host=$DRIVER_HOST \
+        --conf spark.driver.bindAddress=0.0.0.0 \
+        --conf spark.network.timeout=600s \
+        --conf spark.executor.heartbeatInterval=60s \
+        --conf spark.sql.adaptive.enabled=true \
+        --conf spark.sql.adaptive.coalescePartitions.enabled=true \
+        --name nasa_neo_processing \
+        /opt/airflow/spark-data/spark_neo_processor.py \
+        {{ ds }}
+    """,
     dag=dag,
 )
 

@@ -30,19 +30,29 @@ Data Extract → Process → Store → Schedule (Airflow)
 
 ### Prerequisites
 - Docker & Docker Compose installed
-- Python 3.8+ (for local development)
+- Python 3.10.8 (for consistent version across all containers)
 - NASA API Key (free registration at https://api.nasa.gov/)
 
-### 1. Start the Environment
+### 1. Start the Environment (Updated for Python 3.10 Consistency)
 ```bash
-# Start all services
+# For first-time setup or after Python version updates
+.\update_environment.ps1  # Windows PowerShell (recommended)
+# OR manually:
+docker-compose down
+docker-compose build --no-cache
 docker-compose up -d
 
 # Wait for services to initialize (2-3 minutes)
 docker-compose logs -f airflow-webserver
 ```
 
-### 2. Configure Airflow Connections
+### 2. Validate Python Versions (New!)
+```bash
+# Verify all containers use Python 3.10 consistently
+python validate_python_versions.py
+```
+
+### 3. Configure Airflow Connections
 ```bash
 # On Linux/Mac
 chmod +x setup_airflow_connections.sh
@@ -52,26 +62,41 @@ chmod +x setup_airflow_connections.sh
 .\setup_airflow_connections.ps1
 ```
 
-### 3. Access the Services
+### 4. Access the Services
 - **Airflow UI**: http://localhost:8080 (admin/admin)
 - **MySQL**: localhost:3306 (airflow/airflow)
 
-### 4. Verify Spark Cluster
+### 5. Verify Spark Cluster
 ```bash
 # Test your distributed Spark cluster
 python verify_spark_cluster.py
 ```
 
-### 5. Monitor Services
+### 6. Monitor Services
 - **Spark Master UI**: http://localhost:8088
 - **Spark Worker 1 UI**: http://localhost:8081
 - **Spark Worker 2 UI**: http://localhost:8082
 
-### 6. Run the Pipeline
+### 7. Run the Pipeline
 1. Open Airflow UI (http://localhost:8080)
 2. Find the `nasa_neo_pipeline` DAG
 3. Enable the DAG (toggle switch)
 4. Trigger manually or wait for scheduled execution
+
+## 🐍 Python Version Consistency Fix
+
+**Issue Resolved**: Fixed Python version mismatch between Airflow (Python 3.12) and Spark workers (Python 3.8)
+
+**Solution**: All containers now use **Python 3.10.8** consistently:
+- **Airflow containers**: Python 3.10.8 (via `apache/airflow:2.10.4-python3.10`)
+- **Spark cluster**: Python 3.10.8 (via `apache/spark:3.5.7-java17` with environment variables)
+- **PySpark version**: 3.5.7 (matching Spark cluster version)
+
+**Environment Variables Added**:
+```yaml
+PYSPARK_PYTHON: python3.10
+PYSPARK_DRIVER_PYTHON: python3.10
+```
 
 ## 📁 Project Structure
 
