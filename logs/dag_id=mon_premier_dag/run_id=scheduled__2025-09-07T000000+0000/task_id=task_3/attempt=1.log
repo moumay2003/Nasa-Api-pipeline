@@ -1,0 +1,19 @@
+[2025-09-09T21:40:15.312+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2025-09-09T21:40:15.345+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: mon_premier_dag.task_3 scheduled__2025-09-07T00:00:00+00:00 [queued]>
+[2025-09-09T21:40:15.362+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: mon_premier_dag.task_3 scheduled__2025-09-07T00:00:00+00:00 [queued]>
+[2025-09-09T21:40:15.381+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 2
+[2025-09-09T21:40:15.413+0000] {taskinstance.py:2889} INFO - Executing <Task(PythonOperator): task_3> on 2025-09-07 00:00:00+00:00
+[2025-09-09T21:40:15.439+0000] {logging_mixin.py:190} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:70 DeprecationWarning: This process (pid=204) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2025-09-09T21:40:15.442+0000] {standard_task_runner.py:72} INFO - Started process 216 to run task
+[2025-09-09T21:40:15.440+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'mon_premier_dag', 'task_3', 'scheduled__2025-09-07T00:00:00+00:00', '--job-id', '97', '--raw', '--subdir', 'DAGS_FOLDER/mon_premier_dag.py', '--cfg-path', '/tmp/tmpifw2k60o']
+[2025-09-09T21:40:15.446+0000] {standard_task_runner.py:105} INFO - Job 97: Subtask task_3
+[2025-09-09T21:40:17.759+0000] {task_command.py:467} INFO - Running <TaskInstance: mon_premier_dag.task_3 scheduled__2025-09-07T00:00:00+00:00 [running]> on host 4461bcf72552
+[2025-09-09T21:40:15.968+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='mon_premier_dag' AIRFLOW_CTX_TASK_ID='task_3' AIRFLOW_CTX_EXECUTION_DATE='2025-09-07T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-09-07T00:00:00+00:00'
+[2025-09-09T21:40:15.971+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2025-09-09T21:40:16.012+0000] {logging_mixin.py:190} INFO - Hello, Airflow You are 5 years old.
+[2025-09-09T21:40:16.013+0000] {python.py:240} INFO - Done. Returned value was: None
+[2025-09-09T21:40:16.033+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2025-09-09T21:40:16.034+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=mon_premier_dag, task_id=task_3, run_id=scheduled__2025-09-07T00:00:00+00:00, execution_date=20250907T000000, start_date=20250909T214015, end_date=20250909T214016
+[2025-09-09T21:40:16.072+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2025-09-09T21:40:16.127+0000] {taskinstance.py:3895} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-09-09T21:40:16.130+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

@@ -1,0 +1,7 @@
+[2025-09-17T11:02:36.231+0000] {processor.py:186} INFO - Started process (PID=211) to work on /opt/airflow/dags/dag_s3.py
+[2025-09-17T11:02:36.235+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/dag_s3.py for tasks to queue
+[2025-09-17T11:02:36.244+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.243+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/dag_s3.py
+[2025-09-17T11:02:36.293+0000] {processor.py:925} INFO - DAG(s) 'dag_s3' retrieved from /opt/airflow/dags/dag_s3.py
+[2025-09-17T11:02:36.356+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.356+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2025-09-17T11:02:36.411+0000] {logging_mixin.py:190} INFO - [2025-09-17T11:02:36.411+0000] {dag.py:4180} INFO - Setting next_dagrun for dag_s3 to 2025-09-17 00:00:00+00:00, run_after=2025-09-18 00:00:00+00:00
+[2025-09-17T11:02:36.453+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/dag_s3.py took 0.242 seconds
