@@ -1,5 +1,9 @@
 # NASA NEO Data Pipeline 🚀
 
+<img width="1244" height="652" alt="image" src="https://github.com/user-attachments/assets/2445d20c-ad56-4a1a-965b-c4af1e4e2109" />
+
+
+
 A production-ready, distributed ETL pipeline for extracting, processing, and storing NASA Near-Earth Objects (NEO) data using Apache Airflow orchestration with a dedicated Apache Spark cluster and MySQL storage.
 
 ## 🎯 Project Overview
