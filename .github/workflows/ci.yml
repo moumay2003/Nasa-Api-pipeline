@@ -45,4 +45,4 @@ jobs:
     
     - name: Check Dockerfile syntax
       run: |
-        docker build -f dockerfile --no-cache --target-stage=false . || echo "Dockerfile validation completed"
+        docker build -f dockerfile --no-cache -t test-build . || echo "Dockerfile validation completed"
