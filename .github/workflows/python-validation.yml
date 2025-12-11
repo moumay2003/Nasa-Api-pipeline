@@ -10,6 +10,9 @@ on:
     paths:
       - '**.py'
 
+permissions:
+  contents: read
+
 jobs:
   validate-python-syntax:
     name: Validate Python Syntax
