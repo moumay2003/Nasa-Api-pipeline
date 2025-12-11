@@ -1,0 +1,48 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-airflow:
+    name: Build Airflow Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Airflow Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./dockerfile
+        push: false
+        tags: nasa-api-pipeline-airflow:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+  
+  build-spark:
+    name: Build Spark Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Spark Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.spark
+        push: false
+        tags: nasa-api-pipeline-spark:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
